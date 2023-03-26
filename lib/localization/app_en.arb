@@ -187,6 +187,10 @@
     "@chooseThemeLabel": {
         "description": "Choose theme label"
     },
+    "chooseFontLabel": "Choose font",
+    "@chooseFontLabel": {
+        "description": "Choose font label"
+    },
     "updateLabel": "Update",
     "@updateLabel": {
         "description": "Update label"
@@ -376,9 +380,9 @@
     "@pickColorDescLabel": {
         "description": "Pick color label"
     },
-    "colorsLabel": "Colors",
-    "@colorsLabel": {
-        "description": "Colors label"
+    "styleLabel": "Style",
+    "@styleLabel": {
+        "description": "Style label"
     },
     "othersLabel": "Others",
     "@othersLabel": {

@@ -376,10 +376,7 @@
     "@pickColorDescLabel": {
         "description": "Pick color label"
     },
-    "colorsLabel": "Couleurs",
-    "@colorsLabel": {
-        "description": "Colors label"
-    },
+    "styleLabel": "Style",
     "othersLabel": "Autres",
     "@othersLabel": {
         "description": "Others label"

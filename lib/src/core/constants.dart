@@ -5,6 +5,7 @@ const telegramGroupUrl = 'https://t.me/app_paisa';
 const termsAndConditionsUrl = 'https://hemanths.dev/privacy';
 
 const String themeModeKey = 'key_theme_mode';
+const String fontPreferenceKey = 'key_font_preference';
 const String appColorKey = 'key_app_color';
 const String dynamicThemeKey = 'key_dynamic_color';
 const String biometricKey = 'key_biometric';

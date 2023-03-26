@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:paisa/src/presentation/widgets/choose_font_preference_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../main.dart';
@@ -28,6 +29,10 @@ class SettingsPage extends StatelessWidget {
     final currentTheme = ThemeMode.values[getIt
         .get<Box<dynamic>>(instanceName: BoxType.settings.name)
         .get(themeModeKey, defaultValue: 0)];
+    final currentFont = getIt
+        .get<Box<dynamic>>(instanceName: BoxType.settings.name)
+        .get(fontPreferenceKey, defaultValue: 'Outfit');
+
     return Material(
       child: CustomScrollView(
         slivers: [
@@ -38,7 +43,7 @@ class SettingsPage extends StatelessWidget {
             child: Column(
               children: [
                 SettingsGroup(
-                  title: context.loc.colorsLabel,
+                  title: context.loc.styleLabel,
                   options: [
                     SettingsColorPickerWidget(settings: settings),
                     SettingsOption(
@@ -60,6 +65,29 @@ class SettingsPage extends StatelessWidget {
                           context: context,
                           builder: (_) => ChooseThemeModeWidget(
                             currentTheme: currentTheme,
+                          ),
+                        );
+                      },
+                    ),
+                    SettingsOption(
+                      title: context.loc.chooseFontLabel,
+                      subtitle: currentFont,
+                      onTap: () {
+                        showModalBottomSheet(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width >= 700
+                                ? 700
+                                : double.infinity,
+                          ),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(16),
+                              topRight: Radius.circular(16),
+                            ),
+                          ),
+                          context: context,
+                          builder: (_) => ChooseFontPreferenceWidget(
+                            currentFont: currentFont,
                           ),
                         );
                       },

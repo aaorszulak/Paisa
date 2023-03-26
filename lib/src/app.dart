@@ -25,6 +25,7 @@ class _PaisaAppState extends State<PaisaApp> {
       appColorKey,
       dynamicThemeKey,
       themeModeKey,
+      fontPreferenceKey,
     ],
   );
 
@@ -37,6 +38,8 @@ class _PaisaAppState extends State<PaisaApp> {
           final bool isDynamic = value.get(dynamicThemeKey, defaultValue: true);
           final ThemeMode themeMode =
               ThemeMode.values[value.get(themeModeKey, defaultValue: 0)];
+          final String fontPreference =
+              value.get(fontPreferenceKey, defaultValue: 'Outfit');
           final int color = value.get(appColorKey, defaultValue: 0xFF795548);
           final Color primaryColor = Color(color);
           return DynamicColorBuilder(
@@ -68,9 +71,7 @@ class _PaisaAppState extends State<PaisaApp> {
                   dialogTheme: dialogTheme(),
                   appBarTheme: appBarThemeLight(lightColorScheme),
                   useMaterial3: true,
-                  textTheme: GoogleFonts.outfitTextTheme(
-                    ThemeData.light().textTheme,
-                  ),
+                  textTheme: GoogleFonts.getTextTheme(fontPreference),
                   scaffoldBackgroundColor: lightColorScheme.background,
                   dialogBackgroundColor: lightColorScheme.background,
                   navigationBarTheme: navigationBarThemeData(lightColorScheme),
@@ -92,9 +93,7 @@ class _PaisaAppState extends State<PaisaApp> {
                   dialogTheme: dialogTheme(),
                   appBarTheme: appBarThemeDark(darkColorScheme),
                   useMaterial3: true,
-                  textTheme: GoogleFonts.outfitTextTheme(
-                    ThemeData.dark().textTheme,
-                  ),
+                  textTheme: GoogleFonts.getTextTheme(fontPreference),
                   scaffoldBackgroundColor: darkColorScheme.background,
                   dialogBackgroundColor: darkColorScheme.background,
                   navigationBarTheme: navigationBarThemeData(darkColorScheme),
