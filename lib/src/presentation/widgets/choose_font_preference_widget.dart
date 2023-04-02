@@ -18,14 +18,6 @@ class ChooseFontPreferenceWidget extends StatefulWidget {
       ChooseFontPreferenceWidgetState();
 }
 
-const allowedFonts = [
-  'Fira Sans',
-  'Lato',
-  'Noto Sans',
-  'Outfit',
-  'Roboto',
-];
-
 class ChooseFontPreferenceWidgetState
     extends State<ChooseFontPreferenceWidget> {
   late String currentIndex = widget.currentFont;
@@ -45,7 +37,8 @@ class ChooseFontPreferenceWidgetState
           ),
           Expanded(
             child: ListView(
-                children: allowedFonts
+                children: GoogleFonts.asMap()
+                    .keys
                     .map(
                       (font) => RadioListTile<String>(
                         value: font,
@@ -57,7 +50,6 @@ class ChooseFontPreferenceWidgetState
                         },
                         title: Text(
                           font,
-                          style: GoogleFonts.getFont(font),
                         ),
                       ),
                     )
