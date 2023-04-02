@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -6,8 +7,9 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 
 import '../../../../../main.dart';
 import '../../../../core/common.dart';
-import '../../../../core/enum/debt_type.dart';
 import '../../../../data/debt/models/transactions_model.dart';
+import '../../../../domain/debt/entities/transaction.dart';
+import '../../../widgets/paisa_bottom_sheet.dart';
 import '../../../widgets/paisa_text_field.dart';
 import '../../cubit/debts_cubit.dart';
 import '../../widgets/debt_toggle_buttons_widget.dart';
@@ -24,14 +26,17 @@ class AddOrEditDebtPage extends StatefulWidget {
 }
 
 class _AddOrEditDebtPageState extends State<AddOrEditDebtPage> {
-  late final bool isUpdate = widget.debtId != null;
-  late final debtBloc = getIt.get<DebtsBloc>()
-    ..add(FetchDebtOrCreditFromIdEvent(widget.debtId))
-    ..add(const ChangeDebtTypeEvent(DebtType.debt));
+  late final bool isUpdate = widget.debtId == null;
+  final DebtsBloc debtBloc = getIt.get();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController amountController = TextEditingController();
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController descController = TextEditingController();
+  final amountController = TextEditingController();
+  final nameController = TextEditingController();
+  final descController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    debtBloc.add(FetchDebtOrCreditFromIdEvent(widget.debtId));
+  }
 
   @override
   void dispose() {
@@ -65,29 +70,56 @@ class _AddOrEditDebtPageState extends State<AddOrEditDebtPage> {
             descController.selection = TextSelection.collapsed(
               offset: state.debt.description.toString().length,
             );
+          } else if (state is DebtErrorState) {
+            context.showMaterialSnackBar(
+              state.errorString,
+              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+              color: Theme.of(context).colorScheme.onErrorContainer,
+            );
+          } else if (state is DeleteDebtsState) {
+            context.pop();
           }
         },
         builder: (context, state) {
-          String? startDate, endDate;
-          if (state is DebtsSuccessState) {
-            startDate = state.debt.dateTime.formattedDate;
-            endDate = state.debt.expiryDateTime.formattedDate;
-          }
           return Scaffold(
             appBar: context.materialYouAppBar(
               context.loc.addDebtLabel,
               actions: [
-                IconButton(
-                  onPressed: () {
-                    debtBloc.currentDebt
-                        ?.delete()
-                        .then((value) => context.pop());
-                  },
-                  icon: Icon(
-                    Icons.delete_rounded,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                )
+                isUpdate
+                    ? const SizedBox.shrink()
+                    : IconButton(
+                        onPressed: () => paisaAlertDialog(
+                          context,
+                          title: Text(context.loc.dialogDeleteTitleLabel),
+                          child: RichText(
+                            text: TextSpan(
+                              text: context.loc.deleteDebtOrCreditLabel,
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ),
+                          confirmationButton: TextButton(
+                            style: TextButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer,
+                              foregroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer,
+                            ),
+                            onPressed: () {
+                              debtBloc.add(DeleteDebtEvent(
+                                  int.tryParse(widget.debtId!) ?? 0));
+                            },
+                            child: const Text('Delete'),
+                          ),
+                        ).then((value) => context.pop()),
+                        icon: Icon(
+                          Icons.delete_rounded,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      )
               ],
             ),
             body: Form(
@@ -99,10 +131,7 @@ class _AddOrEditDebtPageState extends State<AddOrEditDebtPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       children: [
-                        DebtToggleButtonsWidget(
-                          onSelected: (p0) => debtBloc.currentDebtType = p0,
-                          selectedType: debtBloc.currentDebtType,
-                        ),
+                        DebtToggleButtonsWidget(debtsBloc: debtBloc),
                         const SizedBox(height: 16),
                         AmountWidget(controller: amountController),
                         const SizedBox(height: 16),
@@ -113,30 +142,43 @@ class _AddOrEditDebtPageState extends State<AddOrEditDebtPage> {
                       ],
                     ),
                   ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DatePickerWidget(
-                          onSelected: (date) => debtBloc.currentDateTime = date,
-                          title: context.loc.startDateLabel,
-                          subtitle: startDate ?? context.loc.validDateLabel,
-                          icon: MdiIcons.calendarStart,
-                          lastDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                        ),
-                      ),
-                      Expanded(
-                        child: DatePickerWidget(
-                          onSelected: (date) =>
-                              debtBloc.currentDueDateTime = date,
-                          title: context.loc.dueDateLabel,
-                          subtitle: endDate ?? context.loc.validDateLabel,
-                          icon: MdiIcons.calendarEnd,
-                          lastDate: DateTime(2050),
-                          firstDate: DateTime.now(),
-                        ),
-                      ),
-                    ],
+                  BlocBuilder(
+                    bloc: debtBloc,
+                    buildWhen: (previous, current) =>
+                        current is SelectedDateState,
+                    builder: (context, state) {
+                      String? startDate, endDate;
+                      if (state is SelectedDateState) {
+                        startDate = state.startDateTime.formattedDate;
+                        endDate = state.endDateTime.formattedDate;
+                      }
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: DatePickerWidget(
+                              onSelected: (date) =>
+                                  debtBloc.currentDateTime = date,
+                              title: context.loc.startDateLabel,
+                              subtitle: startDate ?? context.loc.validDateLabel,
+                              icon: MdiIcons.calendarStart,
+                              lastDate: DateTime.now(),
+                              firstDate: DateTime(2000),
+                            ),
+                          ),
+                          Expanded(
+                            child: DatePickerWidget(
+                              onSelected: (date) =>
+                                  debtBloc.currentDueDateTime = date,
+                              title: context.loc.dueDateLabel,
+                              subtitle: endDate ?? context.loc.validDateLabel,
+                              icon: MdiIcons.calendarEnd,
+                              lastDate: DateTime(2050),
+                              firstDate: DateTime.now(),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   ListTile(
                     title: Text(
@@ -151,20 +193,28 @@ class _AddOrEditDebtPageState extends State<AddOrEditDebtPage> {
                     valueListenable:
                         getIt.get<Box<TransactionsModel>>().listenable(),
                     builder: (context, value, child) {
-                      final result = value.values
-                          .where((element) =>
-                              element.parentId ==
-                              (int.tryParse(widget.debtId ?? '') ?? -1))
-                          .toList();
+                      final int? parentId = int.tryParse(widget.debtId ?? '');
+                      if (parentId == null) return const SizedBox.shrink();
+                      final List<Transaction> transactions =
+                          value.getTransactionsFromId(parentId);
+
                       return ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: result.length,
+                        itemCount: transactions.length,
                         itemBuilder: (_, index) {
-                          final transaction = result[index];
+                          final Transaction transaction = transactions[index];
                           return ListTile(
-                            trailing: Text(transaction.amount.toCurrency()),
+                            leading: IconButton(
+                              onPressed: () {
+                                debtBloc.add(
+                                  DeleteTransactionEvent(transaction.superId!),
+                                );
+                              },
+                              icon: const Icon(Icons.delete),
+                            ),
                             title: Text(transaction.now.formattedDate),
+                            trailing: Text(transaction.amount.toCurrency()),
                           );
                         },
                       );
@@ -330,6 +380,17 @@ class AmountWidget extends StatelessWidget {
         double? amount = double.tryParse(value);
         BlocProvider.of<DebtsBloc>(context).currentAmount = amount;
       },
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r"[0-9.]")),
+        TextInputFormatter.withFunction((oldValue, newValue) {
+          try {
+            final text = newValue.text;
+            if (text.isNotEmpty) double.parse(text);
+            return newValue;
+          } catch (e) {}
+          return oldValue;
+        }),
+      ],
       validator: (value) {
         if (value!.isNotEmpty) {
           return null;

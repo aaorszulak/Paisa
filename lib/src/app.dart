@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/adapters.dart';
-import '../main.dart';
-import 'presentation/widgets/paisa_annotate_region_widget.dart';
 
+import '../main.dart';
 import 'app/routes.dart';
 import 'core/common.dart';
 import 'core/enum/box_types.dart';
 import 'core/theme/paisa_theme.dart';
+import 'presentation/widgets/paisa_annotate_region_widget.dart';
 
 class PaisaApp extends StatefulWidget {
   const PaisaApp({Key? key}) : super(key: key);
@@ -35,12 +35,20 @@ class _PaisaAppState extends State<PaisaApp> {
       child: ValueListenableBuilder<Box>(
         valueListenable: settings,
         builder: (context, value, _) {
-          final bool isDynamic = value.get(dynamicThemeKey, defaultValue: true);
-          final ThemeMode themeMode =
-              ThemeMode.values[value.get(themeModeKey, defaultValue: 0)];
           final String fontPreference =
               value.get(fontPreferenceKey, defaultValue: 'Outfit');
-          final int color = value.get(appColorKey, defaultValue: 0xFF795548);
+          final bool isDynamic = value.get(
+            dynamicThemeKey,
+            defaultValue: false,
+          );
+          final ThemeMode themeMode = ThemeMode.values[value.get(
+            themeModeKey,
+            defaultValue: 0,
+          )];
+          final int color = value.get(
+            appColorKey,
+            defaultValue: 0xFF795548,
+          );
           final Color primaryColor = Color(color);
           return DynamicColorBuilder(
             builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
@@ -68,7 +76,8 @@ class _PaisaAppState extends State<PaisaApp> {
                   colorScheme: lightColorScheme,
                 ).copyWith(
                   colorScheme: lightColorScheme,
-                  dialogTheme: dialogTheme(),
+                  dialogTheme: dialogTheme,
+                  timePickerTheme: timePickerTheme,
                   appBarTheme: appBarThemeLight(lightColorScheme),
                   useMaterial3: true,
                   textTheme: GoogleFonts.getTextTheme(fontPreference),
@@ -90,7 +99,8 @@ class _PaisaAppState extends State<PaisaApp> {
                   colorScheme: darkColorScheme,
                 ).copyWith(
                   colorScheme: darkColorScheme,
-                  dialogTheme: dialogTheme(),
+                  dialogTheme: dialogTheme,
+                  timePickerTheme: timePickerTheme,
                   appBarTheme: appBarThemeDark(darkColorScheme),
                   useMaterial3: true,
                   textTheme: GoogleFonts.getTextTheme(fontPreference),

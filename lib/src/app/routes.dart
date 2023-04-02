@@ -2,24 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/adapters.dart';
-import '../presentation/accounts/pages/accounts_new/account_transaction_page.dart';
-import '../presentation/category/pages/category_list_page.dart';
-import '../../main.dart';
-import '../data/settings/authenticate.dart';
 
+import '../../main.dart';
 import '../core/common.dart';
 import '../core/enum/box_types.dart';
+import '../data/settings/authenticate.dart';
+import '../presentation/accounts/pages/accounts_new/account_transaction_page.dart';
 import '../presentation/accounts/pages/add/add_account_page.dart';
-import '../presentation/overview/pages/expense_list_page.dart';
 import '../presentation/category/pages/add/add_category_page.dart';
+import '../presentation/category/pages/category_list_page.dart';
+import '../presentation/currency_selector/pages/currency_selector_page.dart';
 import '../presentation/debits/pages/add/add_debt_page.dart';
 import '../presentation/debits/pages/debts_page.dart';
 import '../presentation/expense/pages/expense_page.dart';
 import '../presentation/home/pages/home_page.dart';
 import '../presentation/login/intro/into_page.dart';
-import '../presentation/currency_selector/pages/currency_selector_page.dart';
 import '../presentation/login/pages/user_image_page.dart';
 import '../presentation/login/pages/user_name_page.dart';
+import '../presentation/overview/pages/expense_list_page.dart';
 import '../presentation/settings/pages/export_and_import_page.dart';
 import '../presentation/settings/pages/setting_page.dart';
 
@@ -94,13 +94,23 @@ final GoRouter goRouter = GoRouter(
         GoRoute(
           path: addExpensePath,
           name: addExpensePath,
-          builder: (context, state) => const ExpensePage(),
+          pageBuilder: (context, state) => MaterialPage(
+            key: ValueKey(
+              state.location + DateTime.now().millisecondsSinceEpoch.toString(),
+            ),
+            child: const ExpensePage(),
+          ),
         ),
         GoRoute(
           name: editExpensePath,
           path: 'edit-expense/:eid',
-          builder: (context, state) => ExpensePage(
-            expenseId: state.params['eid'],
+          pageBuilder: (context, state) => MaterialPage(
+            key: ValueKey(
+              state.location + DateTime.now().millisecondsSinceEpoch.toString(),
+            ),
+            child: ExpensePage(
+              expenseId: state.params['eid'],
+            ),
           ),
         ),
         GoRoute(

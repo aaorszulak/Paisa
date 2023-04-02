@@ -1,23 +1,20 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:in_app_review/in_app_review.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
 import '../../../../main.dart';
 import '../../../core/common.dart';
 import '../../../core/enum/transaction.dart';
+import '../../widgets/paisa_add_button_widget.dart';
 import '../../widgets/paisa_bottom_sheet.dart';
 import '../../widgets/paisa_text_field.dart';
 import '../bloc/expense_bloc.dart';
 import '../widgets/select_account_widget.dart';
 import '../widgets/select_category_widget.dart';
 import '../widgets/toggle_buttons_widget.dart';
-
-final GlobalKey<FormState> _form = GlobalKey<FormState>();
 
 class ExpensePage extends StatefulWidget {
   const ExpensePage({
@@ -31,14 +28,13 @@ class ExpensePage extends StatefulWidget {
 }
 
 class _ExpensePageState extends State<ExpensePage> {
+  late final bool isAddExpense = widget.expenseId == null;
   late final ExpenseBloc expenseBloc = getIt.get<ExpenseBloc>()
     ..add(const ChangeExpenseEvent(TransactionType.expense))
     ..add(FetchExpenseFromIdEvent(widget.expenseId));
-  late TextEditingController nameController = TextEditingController();
-  late TextEditingController amountController = TextEditingController();
-  late TextEditingController descriptionController = TextEditingController();
-
-  bool get isAddExpense => widget.expenseId == null;
+  final nameController = TextEditingController();
+  final amountController = TextEditingController();
+  final descriptionController = TextEditingController();
 
   @override
   void dispose() {
@@ -79,12 +75,6 @@ class _ExpensePageState extends State<ExpensePage> {
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               color: Theme.of(context).colorScheme.onPrimaryContainer,
             );
-            if (!kDebugMode) {
-              final InAppReview inAppReview = InAppReview.instance;
-              inAppReview
-                  .isAvailable()
-                  .then((value) => inAppReview.requestReview());
-            }
             context.pop();
           } else if (state is ExpenseErrorState) {
             context.showMaterialSnackBar(
@@ -101,15 +91,15 @@ class _ExpensePageState extends State<ExpensePage> {
             amountController.selection = TextSelection.collapsed(
               offset: state.expense.currency.toString().length,
             );
-            descriptionController.text = state.expense.description.toString();
+            descriptionController.text = state.expense.description ?? '';
             descriptionController.selection = TextSelection.collapsed(
-              offset: state.expense.description.toString().length,
+              offset: state.expense.description?.length ?? 0,
             );
           }
         },
         builder: (context, state) {
-          return ScreenTypeLayout.builder(
-            mobile: (_) => Scaffold(
+          return ScreenTypeLayout(
+            mobile: Scaffold(
               appBar: context.materialYouAppBar(
                 isAddExpense
                     ? context.loc.addExpenseLabel
@@ -156,32 +146,24 @@ class _ExpensePageState extends State<ExpensePage> {
               body: ListView(
                 shrinkWrap: true,
                 children: [
-                  TransactionToggleButtons(
-                    onSelected: (type) {
-                      expenseBloc.transactionType = type;
-                      expenseBloc.add(ChangeExpenseEvent(type));
-                    },
-                    selectedType: expenseBloc.transactionType,
-                  ),
+                  TransactionToggleButtons(expenseBloc: expenseBloc),
                   const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Form(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          ExpenseNameWidget(controller: nameController),
-                          const SizedBox(height: 16),
-                          ExpenseDescriptionWidget(
-                            controller: descriptionController,
-                          ),
-                          const SizedBox(height: 16),
-                          ExpenseAmountWidget(controller: amountController),
-                          const SizedBox(height: 16),
-                          const ExpenseDatePickerWidget(),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ExpenseNameWidget(controller: nameController),
+                        const SizedBox(height: 16),
+                        ExpenseDescriptionWidget(
+                          controller: descriptionController,
+                        ),
+                        const SizedBox(height: 16),
+                        ExpenseAmountWidget(controller: amountController),
+                        const SizedBox(height: 16),
+                        const ExpenseDatePickerWidget(),
+                        const SizedBox(height: 16),
+                      ],
                     ),
                   ),
                   const SelectedAccount(),
@@ -191,11 +173,31 @@ class _ExpensePageState extends State<ExpensePage> {
               bottomNavigationBar: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: _addButton(context),
+                  child: PaisaAddButton(
+                    onPressed: () {
+                      expenseBloc.add(AddOrUpdateExpenseEvent(isAddExpense));
+                    },
+                    title: isAddExpense
+                        ? context.loc.addLabel
+                        : context.loc.updateLabel,
+                  ),
                 ),
               ),
             ),
-            tablet: (_) => Scaffold(
+            tablet: Scaffold(
+              bottomNavigationBar: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: PaisaAddButton(
+                    onPressed: () {
+                      expenseBloc.add(AddOrUpdateExpenseEvent(isAddExpense));
+                    },
+                    title: isAddExpense
+                        ? context.loc.addLabel
+                        : context.loc.updateLabel,
+                  ),
+                ),
+              ),
               appBar: AppBar(
                 systemOverlayStyle: SystemUiOverlayStyle(
                   statusBarColor: Colors.transparent,
@@ -221,13 +223,7 @@ class _ExpensePageState extends State<ExpensePage> {
                       ?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 actions: [
-                  TransactionToggleButtons(
-                    onSelected: (type) {
-                      expenseBloc.transactionType = type;
-                      expenseBloc.add(ChangeExpenseEvent(type));
-                    },
-                    selectedType: expenseBloc.transactionType,
-                  ),
+                  TransactionToggleButtons(expenseBloc: expenseBloc),
                   isAddExpense
                       ? const SizedBox.shrink()
                       : IconButton(
@@ -261,26 +257,25 @@ class _ExpensePageState extends State<ExpensePage> {
                     ),
                   ),
                   Expanded(
-                    child: Form(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            ExpenseNameWidget(controller: nameController),
-                            const SizedBox(height: 16),
-                            ExpenseDescriptionWidget(
-                                controller: descriptionController),
-                            const SizedBox(height: 16),
-                            ExpenseAmountWidget(controller: amountController),
-                            const SizedBox(height: 16),
-                            const ExpenseDatePickerWidget(),
-                            const SizedBox(height: 16),
-                            _addButton(context),
-                            const SizedBox(height: 16),
-                          ],
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ExpenseNameWidget(controller: nameController),
+                              const SizedBox(height: 16),
+                              ExpenseDescriptionWidget(
+                                  controller: descriptionController),
+                              const SizedBox(height: 16),
+                              ExpenseAmountWidget(controller: amountController),
+                            ],
+                          ),
                         ),
-                      ),
+                        const ExpenseDatePickerWidget(),
+                      ],
                     ),
                   ),
                 ],
@@ -288,28 +283,6 @@ class _ExpensePageState extends State<ExpensePage> {
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _addButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        BlocProvider.of<ExpenseBloc>(context)
-            .add(AddOrUpdateExpenseEvent(isAddExpense));
-      },
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(32.0),
-        ),
-      ),
-      child: Text(
-        isAddExpense ? context.loc.addLabel : context.loc.updateLabel,
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
-        ),
       ),
     );
   }
@@ -335,6 +308,9 @@ class ExpenseNameWidget extends StatelessWidget {
             controller: controller,
             hintText: state.transactionType.hintName(context),
             keyboardType: TextInputType.name,
+            inputFormatters: [
+              FilteringTextInputFormatter.singleLineFormatter,
+            ],
             validator: (value) {
               if (value!.isNotEmpty) {
                 return null;
@@ -390,6 +366,17 @@ class ExpenseAmountWidget extends StatelessWidget {
       keyboardType: TextInputType.number,
       maxLength: 13,
       maxLines: 1,
+      inputFormatters: <TextInputFormatter>[
+        FilteringTextInputFormatter.allow(RegExp(r"[0-9.]")),
+        TextInputFormatter.withFunction((oldValue, newValue) {
+          try {
+            final text = newValue.text;
+            if (text.isNotEmpty) double.parse(text);
+            return newValue;
+          } catch (e) {}
+          return oldValue;
+        }),
+      ],
       onChanged: (value) {
         double? amount = double.tryParse(value);
         BlocProvider.of<ExpenseBloc>(context).expenseAmount = amount;
@@ -425,8 +412,10 @@ class _ExpenseDatePickerWidgetState extends State<ExpenseDatePickerWidget> {
       children: [
         Expanded(
           child: ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             horizontalTitleGap: 0,
-            contentPadding: EdgeInsets.zero,
             onTap: () async {
               final DateTime? dateTime = await showDatePicker(
                 context: context,
@@ -435,13 +424,14 @@ class _ExpenseDatePickerWidgetState extends State<ExpenseDatePickerWidget> {
                 lastDate: DateTime.now(),
               );
               if (dateTime != null) {
-                selectedDateTime = selectedDateTime.copyWith(
-                  day: dateTime.day,
-                  month: dateTime.month,
-                  year: dateTime.year,
-                );
-                expenseBloc.selectedDate = selectedDateTime;
-                setState(() {});
+                setState(() {
+                  selectedDateTime = selectedDateTime.copyWith(
+                    day: dateTime.day,
+                    month: dateTime.month,
+                    year: dateTime.year,
+                  );
+                  expenseBloc.selectedDate = selectedDateTime;
+                });
               }
             },
             leading: const Icon(Icons.today_rounded),
@@ -450,8 +440,10 @@ class _ExpenseDatePickerWidgetState extends State<ExpenseDatePickerWidget> {
         ),
         Expanded(
           child: ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             horizontalTitleGap: 0,
-            contentPadding: EdgeInsets.zero,
             onTap: () async {
               final TimeOfDay? timeOfDay = await showTimePicker(
                 context: context,
@@ -459,12 +451,13 @@ class _ExpenseDatePickerWidgetState extends State<ExpenseDatePickerWidget> {
                 initialEntryMode: TimePickerEntryMode.dialOnly,
               );
               if (timeOfDay != null) {
-                selectedDateTime = selectedDateTime.copyWith(
-                  hour: timeOfDay.hour,
-                  minute: timeOfDay.minute,
-                );
-                expenseBloc.selectedDate = selectedDateTime;
-                setState(() {});
+                setState(() {
+                  selectedDateTime = selectedDateTime.copyWith(
+                    hour: timeOfDay.hour,
+                    minute: timeOfDay.minute,
+                  );
+                  expenseBloc.selectedDate = selectedDateTime;
+                });
               }
             },
             leading: const Icon(MdiIcons.clockOutline),

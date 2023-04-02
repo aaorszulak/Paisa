@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:paisa/src/presentation/widgets/paisa_add_button_widget.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
 import '../../../../../main.dart';
@@ -27,11 +28,12 @@ class AddCategoryPage extends StatefulWidget {
 }
 
 class _AddCategoryPageState extends State<AddCategoryPage> {
+  late final bool isAddCategory = widget.categoryId == null;
   late final categoryBloc = getIt.get<CategoryBloc>()
     ..add(FetchCategoryFromIdEvent(widget.categoryId));
-  late TextEditingController budgetController = TextEditingController();
-  late TextEditingController categoryController = TextEditingController();
-  late TextEditingController descController = TextEditingController();
+  final budgetController = TextEditingController();
+  final categoryController = TextEditingController();
+  final descController = TextEditingController();
 
   @override
   void dispose() {
@@ -81,8 +83,8 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
           }
         },
         builder: (context, state) {
-          return ScreenTypeLayout.builder(
-            mobile: (_) => Scaffold(
+          return ScreenTypeLayout(
+            mobile: Scaffold(
               appBar: appBar(),
               body: SingleChildScrollView(
                 child: Form(
@@ -140,15 +142,47 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
               bottomNavigationBar: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: _submitButton(context),
+                  child: PaisaAddButton(
+                    onPressed: () {
+                      final isValid = _formKey.currentState!.validate();
+                      if (!isValid) {
+                        return;
+                      }
+
+                      BlocProvider.of<CategoryBloc>(context)
+                          .add(AddOrUpdateCategoryEvent(isAddCategory));
+                    },
+                    title: isAddCategory
+                        ? context.loc.addCategoryLabel
+                        : context.loc.updateLabel,
+                  ),
                 ),
               ),
             ),
-            tablet: (_) => Scaffold(
+            tablet: Scaffold(
               appBar: context.materialYouAppBar(
                 isAddCategory
                     ? context.loc.addCategoryLabel
                     : context.loc.updateCategoryLabel,
+              ),
+              bottomNavigationBar: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: PaisaAddButton(
+                    onPressed: () {
+                      final isValid = _formKey.currentState!.validate();
+                      if (!isValid) {
+                        return;
+                      }
+
+                      BlocProvider.of<CategoryBloc>(context)
+                          .add(AddOrUpdateCategoryEvent(isAddCategory));
+                    },
+                    title: isAddCategory
+                        ? context.loc.addCategoryLabel
+                        : context.loc.updateLabel,
+                  ),
+                ),
               ),
               body: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -175,7 +209,6 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
                             CategoryDescriptionWidget(
                                 controller: descController),
                             const SizedBox(height: 24),
-                            _submitButton(context),
                           ],
                         ),
                       ),
@@ -190,40 +223,11 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
     );
   }
 
-  bool get isAddCategory => widget.categoryId == null;
-
   AppBar appBar() {
     return context.materialYouAppBar(
       isAddCategory
           ? context.loc.addCategoryLabel
           : context.loc.updateCategoryLabel,
-    );
-  }
-
-  Widget _submitButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        final isValid = _formKey.currentState!.validate();
-        if (!isValid) {
-          return;
-        }
-
-        BlocProvider.of<CategoryBloc>(context)
-            .add(AddOrUpdateCategoryEvent(isAddCategory));
-      },
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(32.0),
-        ),
-      ),
-      child: Text(
-        isAddCategory ? context.loc.addCategoryLabel : context.loc.updateLabel,
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
-        ),
-      ),
     );
   }
 }
@@ -240,7 +244,6 @@ class CategoryNameWidget extends StatelessWidget {
     return PaisaTextFormField(
       controller: controller,
       hintText: context.loc.enterCategoryLabel,
-      label: context.loc.categoryLabel,
       keyboardType: TextInputType.name,
       onChanged: (value) =>
           BlocProvider.of<CategoryBloc>(context).categoryTitle = value,
@@ -268,7 +271,6 @@ class CategoryDescriptionWidget extends StatelessWidget {
       controller: controller,
       hintText: context.loc.enterDescriptionLabel,
       keyboardType: TextInputType.name,
-      label: context.loc.descriptionLabel,
       onChanged: (value) =>
           BlocProvider.of<CategoryBloc>(context).categoryDesc = value,
     );

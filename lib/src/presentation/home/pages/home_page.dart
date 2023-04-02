@@ -31,16 +31,16 @@ class _LandingPageState extends State<LandingPage> {
   void _handleClick(PageType page) {
     switch (page) {
       case PageType.accounts:
-        context.pushNamed(addAccountPath);
+        context.goNamed(addAccountPath);
         break;
       case PageType.home:
         context.pushNamed(addExpensePath);
         break;
       case PageType.category:
-        context.pushNamed(addCategoryPath);
+        context.goNamed(addCategoryPath);
         break;
       case PageType.debts:
-        context.pushNamed(addDebitName);
+        context.goNamed(addDebitName);
         break;
       case PageType.budgetOverview:
         _dateRangePicker();
@@ -120,23 +120,23 @@ class _LandingPageState extends State<LandingPage> {
           homeBloc.add(const CurrentIndexEvent(PageType.home));
           return false;
         },
-        child: ScreenTypeLayout.builder(
+        child: ScreenTypeLayout(
           breakpoints: const ScreenBreakpoints(
             tablet: 600,
             desktop: 700,
             watch: 300,
           ),
-          mobile: (_) => HomeMobilePage(
+          mobile: HomeMobilePage(
             homeBloc: homeBloc,
             dateTimeRangeNotifier: dateTimeRangeNotifier,
             floatingActionButton: _floatingActionButtonBig(),
           ),
-          tablet: (_) => HomeTabletPage(
+          tablet: HomeTabletPage(
             homeBloc: homeBloc,
             dateTimeRangeNotifier: dateTimeRangeNotifier,
             floatingActionButton: _desktopButton(),
           ),
-          desktop: (_) => HomeDesktopWidget(
+          desktop: HomeDesktopWidget(
             homeBloc: homeBloc,
             dateTimeRangeNotifier: dateTimeRangeNotifier,
             floatingActionButton: _desktopButton(),

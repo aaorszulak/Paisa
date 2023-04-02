@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:hive_flutter/adapters.dart';
-import '../../domain/account/entities/account.dart';
 
 import '../../data/accounts/model/account_model.dart';
+import '../../domain/account/entities/account.dart';
 
 extension AccountMapping on AccountModel {
   double get initialAmount => amount ?? 0;
@@ -26,7 +26,7 @@ extension AccountsMapping on Iterable<AccountModel> {
 extension AccountBoxMapping on Box<AccountModel> {
   List<Account> toEntities() => values
       .map((accountModel) => accountModel.toEntity())
-      .sorted((a, b) => a.name.compareTo(b.name))
+      .sorted((a, b) => b.name.compareTo(a.name))
       .toList();
 
   double get totalAccountInitialAmount =>

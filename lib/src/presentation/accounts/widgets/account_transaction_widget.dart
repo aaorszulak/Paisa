@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:paisa/src/presentation/widgets/paisa_card.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../widgets/paisa_card.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
 import '../../../core/common.dart';
@@ -39,8 +40,8 @@ class AccountTransactionWidget extends StatelessWidget {
         ),
       );
     }
-    return ScreenTypeLayout.builder(
-      mobile: (_) => ListView(
+    return ScreenTypeLayout(
+      mobile: ListView(
         physics: isScroll ? null : const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         children: [
@@ -49,13 +50,12 @@ class AccountTransactionWidget extends StatelessWidget {
               horizontal: 16,
               vertical: 0,
             ),
-            title: Text(
-              context.loc.transactionHistoryLabel,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
+            title: Text(context.loc.transactionHistoryLabel,
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w600,
+                  textStyle: Theme.of(context).textTheme.titleLarge,
+                  color: Theme.of(context).colorScheme.onBackground,
+                )),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -82,7 +82,7 @@ class AccountTransactionWidget extends StatelessWidget {
           ),
         ],
       ),
-      tablet: (_) => ListView(
+      tablet: ListView(
         padding: const EdgeInsets.only(bottom: 128),
         shrinkWrap: true,
         children: [

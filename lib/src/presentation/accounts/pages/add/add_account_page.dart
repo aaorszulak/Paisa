@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:paisa/src/presentation/widgets/paisa_add_button_widget.dart';
 import '../../../widgets/paisa_bottom_sheet.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
@@ -94,8 +96,8 @@ class AddAccountPageState extends State<AddAccountPage> {
           }
         },
         builder: (context, state) {
-          return ScreenTypeLayout.builder(
-            mobile: (_) => Scaffold(
+          return ScreenTypeLayout(
+            mobile: Scaffold(
               appBar: context.materialYouAppBar(
                 isAccountAddOrUpdate
                     ? context.loc.addCardLabel
@@ -163,15 +165,13 @@ class AddAccountPageState extends State<AddAccountPage> {
                         vertical: 8,
                       ),
                       child: CardTypeButtons(
-                        onSelected: (cardType) =>
-                            accountsBloc.add(UpdateCardTypeEvent(cardType)),
-                        selectedCardType: accountsBloc.selectedType,
+                        accountsBloc: accountsBloc,
                       ),
                     ),
                     Form(
                       key: _form,
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -186,19 +186,9 @@ class AddAccountPageState extends State<AddAccountPage> {
                               accountBloc: accountsBloc,
                             ),
                             const SizedBox(height: 16),
-                            Builder(
-                              builder: (context) {
-                                if (state is UpdateCardTypeState &&
-                                    (state.cardType == CardType.bank ||
-                                        state.cardType == CardType.wallet)) {
-                                  return AccountInitialAmountWidget(
-                                    controller: accountInitialAmountController,
-                                    accountBloc: accountsBloc,
-                                  );
-                                } else {
-                                  return const SizedBox.shrink();
-                                }
-                              },
+                            AccountInitialAmountWidget(
+                              controller: accountInitialAmountController,
+                              accountBloc: accountsBloc,
                             ),
                             const SizedBox(height: 16),
                             Builder(
@@ -254,7 +244,7 @@ class AddAccountPageState extends State<AddAccountPage> {
                 ),
               ),
             ),
-            tablet: (_) => Scaffold(
+            tablet: Scaffold(
               appBar: context.materialYouAppBar(
                 context.loc.addCardLabel,
                 actions: [
@@ -311,6 +301,22 @@ class AddAccountPageState extends State<AddAccountPage> {
                         )
                 ],
               ),
+              bottomNavigationBar: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: PaisaAddButton(
+                    onPressed: () {
+                      final isValid = _form.currentState!.validate();
+                      if (!isValid) {
+                        return;
+                      }
+                      accountsBloc
+                          .add(AddOrUpdateAccountEvent(isAccountAddOrUpdate));
+                    },
+                    title: context.loc.addCardLabel,
+                  ),
+                ),
+              ),
               body: SingleChildScrollView(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,10 +330,7 @@ class AddAccountPageState extends State<AddAccountPage> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               CardTypeButtons(
-                                onSelected: (cardType) {
-                                  accountsBloc.selectedType = cardType;
-                                },
-                                selectedCardType: accountsBloc.selectedType,
+                                accountsBloc: accountsBloc,
                               ),
                               const SizedBox(height: 16),
                               AccountCardHolderNameWidget(
@@ -350,33 +353,6 @@ class AddAccountPageState extends State<AddAccountPage> {
                                 accountBloc: accountsBloc,
                               ),
                               const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () {
-                                  final isValid =
-                                      _form.currentState!.validate();
-                                  if (!isValid) {
-                                    return;
-                                  }
-                                  accountsBloc.add(AddOrUpdateAccountEvent(
-                                      isAccountAddOrUpdate));
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.all(24),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(32.0),
-                                  ),
-                                ),
-                                child: Text(
-                                  context.loc.addCardLabel,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.fontSize,
-                                  ),
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -472,6 +448,9 @@ class AccountCardHolderNameWidget extends StatelessWidget {
           controller: controller,
           hintText: context.loc.enterCardHolderNameLabel,
           keyboardType: TextInputType.name,
+          inputFormatters: [
+            FilteringTextInputFormatter.singleLineFormatter,
+          ],
           onChanged: (value) => accountBloc.accountHolderName = value,
         );
       },
@@ -496,6 +475,9 @@ class AccountNameWidget extends StatelessWidget {
           controller: controller,
           hintText: context.loc.enterAccountNameLabel,
           keyboardType: TextInputType.name,
+          inputFormatters: [
+            FilteringTextInputFormatter.singleLineFormatter,
+          ],
           onChanged: (value) => accountBloc.accountName = value,
         );
       },
@@ -516,6 +498,9 @@ class AccountNumberWidget extends StatelessWidget {
     return PaisaTextFormField(
       maxLength: 4,
       controller: controller,
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+      ],
       hintText: context.loc.enterNumberOptionalLabel,
       keyboardType: TextInputType.number,
       onChanged: (value) => accountBloc.accountNumber = value,
@@ -537,6 +522,9 @@ class AccountInitialAmountWidget extends StatelessWidget {
       controller: controller,
       hintText: context.loc.enterAmountLabel,
       keyboardType: TextInputType.number,
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+      ],
       onChanged: (value) {
         double? amount = double.tryParse(value);
         accountBloc.initialAmount = amount;

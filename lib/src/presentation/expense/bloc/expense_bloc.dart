@@ -4,13 +4,14 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
-import 'package:meta/meta.dart';
 
 import '../../../core/enum/transaction.dart';
 import '../../../data/accounts/model/account_model.dart';
 import '../../../data/category/model/category_model.dart';
 import '../../../data/expense/model/expense_model.dart';
+import '../../../domain/account/entities/account.dart';
 import '../../../domain/account/use_case/get_account_use_case.dart';
+import '../../../domain/category/entities/category.dart';
 import '../../../domain/expense/entities/expense.dart';
 import '../../../domain/expense/use_case/expense_use_case.dart';
 import '../../../domain/expense/use_case/update_expense_use_case.dart';
@@ -34,6 +35,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
     on<FetchExpenseFromIdEvent>(_fetchExpenseFromId);
     on<ChangeCategoryEvent>(_changeCategory);
     on<ChangeAccountEvent>(_changeAccount);
+    on<UpdateDateTimeEvent>(_updateDateTime);
   }
 
   final GetExpenseUseCase expenseUseCase;
@@ -71,7 +73,8 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       currentDescription = expense.description;
       currentExpense = expense;
       emit(ExpenseSuccessState(expense));
-      add(ChangeExpenseEvent(transactionType));
+      Future.delayed(Duration.zero)
+          .then((value) => add(ChangeExpenseEvent(transactionType)));
     } else {
       emit(const ExpenseErrorState('Expense not found!'));
     }
@@ -88,13 +91,13 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
     final DateTime dateTime = selectedDate;
     final String? description = currentDescription;
 
+    if (name == null) {
+      return emit(const ExpenseErrorState('Enter expense name'));
+    }
     if (validAmount == null || validAmount == 0.0) {
       return emit(const ExpenseErrorState('Enter valid amount'));
     }
 
-    if (name == null) {
-      return emit(const ExpenseErrorState('Enter expense name'));
-    }
     if (accountId == null) {
       return emit(const ExpenseErrorState('Select account'));
     }
@@ -106,10 +109,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
       await addExpenseUseCase(
         name: name,
         amount: validAmount,
-        time: dateTime.copyWith(
-          hour: timeOfDay.hour,
-          minute: timeOfDay.minute,
-        ),
+        time: dateTime,
         categoryId: categoryId,
         accountId: accountId,
         transactionType: transactionType,
@@ -122,10 +122,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
         ..categoryId = categoryId
         ..currency = validAmount
         ..name = name
-        ..time = dateTime.copyWith(
-          hour: timeOfDay.hour,
-          minute: timeOfDay.minute,
-        )
+        ..time = dateTime
         ..type = transactionType
         ..description = description;
       await updateExpensesUseCase(currentExpense!);
@@ -145,6 +142,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
     ChangeExpenseEvent event,
     Emitter<ExpenseState> emit,
   ) {
+    transactionType = event.transactionType;
     emit(ChangeExpenseState(event.transactionType));
   }
 
@@ -152,7 +150,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
     ChangeCategoryEvent event,
     Emitter<ExpenseState> emit,
   ) {
-    selectedCategoryId = event.category.key;
+    selectedCategoryId = event.category.superId;
     emit(ChangeCategoryState(event.category));
   }
 
@@ -160,7 +158,15 @@ class ExpenseBloc extends Bloc<ExpenseEvent, ExpenseState> {
     ChangeAccountEvent event,
     Emitter<ExpenseState> emit,
   ) {
-    selectedAccountId = event.account.key;
+    selectedAccountId = event.account.superId;
     emit(ChangeAccountState(event.account));
+  }
+
+  FutureOr<void> _updateDateTime(
+    UpdateDateTimeEvent event,
+    Emitter<ExpenseState> emit,
+  ) {
+    selectedDate = event.dateTime;
+    emit(UpdateDateTimeState(event.dateTime));
   }
 }

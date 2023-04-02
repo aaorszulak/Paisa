@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/adapters.dart';
 
 import '../../../../main.dart';
@@ -17,15 +18,17 @@ class WelcomeNameWidget extends StatelessWidget {
       builder: (context, value, _) {
         final name = value.get(userNameKey, defaultValue: 'Name');
         return Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 name,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w600,
+                  textStyle: Theme.of(context).textTheme.titleLarge,
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
               ),
               Text(
                 context.loc.welcomeMessage,

@@ -19,7 +19,7 @@ class LocalExpenseDataManagerImpl implements LocalExpenseDataManager {
   Future<void> addOrUpdateExpense(ExpenseModel expense) async {
     final id = await expenseBox.add(expense);
     expense.superId = id;
-    expense.save();
+    return expense.save();
   }
 
   @override
@@ -33,8 +33,8 @@ class LocalExpenseDataManagerImpl implements LocalExpenseDataManager {
   }
 
   @override
-  Future<void> clearExpense(int key) async {
-    await expenseBox.delete(key);
+  Future<void> clearExpense(int key) {
+    return expenseBox.delete(key);
   }
 
   @override
