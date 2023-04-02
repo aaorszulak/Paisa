@@ -80,7 +80,10 @@ class _PaisaAppState extends State<PaisaApp> {
                   timePickerTheme: timePickerTheme,
                   appBarTheme: appBarThemeLight(lightColorScheme),
                   useMaterial3: true,
-                  textTheme: GoogleFonts.getTextTheme(fontPreference),
+                  textTheme: GoogleFonts.getTextTheme(
+                    fontPreference,
+                    ThemeData.light().textTheme,
+                  ),
                   scaffoldBackgroundColor: lightColorScheme.background,
                   dialogBackgroundColor: lightColorScheme.background,
                   navigationBarTheme: navigationBarThemeData(lightColorScheme),
@@ -103,7 +106,10 @@ class _PaisaAppState extends State<PaisaApp> {
                   timePickerTheme: timePickerTheme,
                   appBarTheme: appBarThemeDark(darkColorScheme),
                   useMaterial3: true,
-                  textTheme: GoogleFonts.getTextTheme(fontPreference),
+                  textTheme: GoogleFonts.getTextTheme(
+                    fontPreference,
+                    ThemeData.dark().textTheme,
+                  ),
                   scaffoldBackgroundColor: darkColorScheme.background,
                   dialogBackgroundColor: darkColorScheme.background,
                   navigationBarTheme: navigationBarThemeData(darkColorScheme),
