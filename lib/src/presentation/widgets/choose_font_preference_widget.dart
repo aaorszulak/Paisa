@@ -20,7 +20,41 @@ class ChooseFontPreferenceWidget extends StatefulWidget {
 
 class ChooseFontPreferenceWidgetState
     extends State<ChooseFontPreferenceWidget> {
-  late String currentIndex = widget.currentFont;
+  late String _currentIndex = widget.currentFont;
+  final _fonts = GoogleFonts.asMap().keys.toList();
+
+  _onChanged(String? value) {
+    if (value == null) {
+      return;
+    }
+    setState(() {
+      _currentIndex = value;
+    });
+  }
+
+  Widget? _itemBuilder(BuildContext context, int index) {
+    final font = _fonts[index];
+    return RadioListTile<String>(
+      value: font,
+      activeColor: Theme.of(context).colorScheme.primary,
+      groupValue: _currentIndex,
+      onChanged: _onChanged,
+      title: Text(
+        font,
+        style: GoogleFonts.getFont(font),
+      ),
+    );
+  }
+
+  _save() async {
+    await getIt
+        .get<Box<dynamic>>(instanceName: BoxType.settings.name)
+        .put(fontPreferenceKey, _currentIndex);
+    if (!mounted) {
+      return;
+    }
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,24 +70,10 @@ class ChooseFontPreferenceWidgetState
             ),
           ),
           Expanded(
-            child: ListView(
-                children: GoogleFonts.asMap()
-                    .keys
-                    .map(
-                      (font) => RadioListTile<String>(
-                        value: font,
-                        activeColor: Theme.of(context).colorScheme.primary,
-                        groupValue: currentIndex,
-                        onChanged: (String? value) {
-                          currentIndex = value!;
-                          setState(() {});
-                        },
-                        title: Text(
-                          font,
-                        ),
-                      ),
-                    )
-                    .toList()),
+            child: ListView.builder(
+              itemBuilder: _itemBuilder,
+              itemCount: _fonts.length,
+            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -62,11 +82,13 @@ class ChooseFontPreferenceWidgetState
                 padding: const EdgeInsets.only(bottom: 16),
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(24)),
                     ),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                   ),
                   onPressed: () => Navigator.pop(context),
                   child: Text(context.loc.cancelLabel),
@@ -76,18 +98,15 @@ class ChooseFontPreferenceWidgetState
                 padding: const EdgeInsets.only(right: 16.0, bottom: 16),
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(24)),
                     ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 12,
                     ),
                   ),
-                  onPressed: () => getIt
-                      .get<Box<dynamic>>(instanceName: BoxType.settings.name)
-                      .put(fontPreferenceKey, currentIndex)
-                      .then((value) => Navigator.pop(context)),
+                  onPressed: _save,
                   child: Text(context.loc.okLabel),
                 ),
               ),
