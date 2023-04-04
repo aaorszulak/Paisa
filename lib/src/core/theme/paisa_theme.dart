@@ -247,11 +247,9 @@ ElevatedButtonThemeData elevatedButtonTheme(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(32.0),
       ),
-      textStyle: GoogleFonts.outfit(
-        textStyle: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onPrimary,
-        ),
+      textStyle: TextStyle(
+        fontWeight: FontWeight.w600,
+        color: colorScheme.onPrimary,
       ),
     ),
   );
@@ -272,9 +270,9 @@ NavigationBarThemeData navigationBarThemeData(ColorScheme colorScheme) {
     labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
     labelTextStyle: MaterialStateProperty.resolveWith((states) {
       if (states.contains(MaterialState.selected)) {
-        return GoogleFonts.outfit().copyWith(fontWeight: FontWeight.bold);
+        return const TextStyle(fontWeight: FontWeight.bold);
       } else {
-        return GoogleFonts.outfit();
+        return null;
       }
     }),
   );

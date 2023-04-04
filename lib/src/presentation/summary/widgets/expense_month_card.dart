@@ -26,11 +26,10 @@ class ExpenseMonthCardWidget extends StatelessWidget {
         ListTile(
           title: Text(
             title,
-            style: GoogleFonts.outfit(
-              fontWeight: FontWeight.w600,
-              textStyle: Theme.of(context).textTheme.titleMedium,
-              color: Theme.of(context).colorScheme.onBackground,
-            ),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
           ),
           trailing: Text(
             total.toCurrency(),

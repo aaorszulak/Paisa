@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../widgets/paisa_card.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
@@ -50,12 +49,13 @@ class AccountTransactionWidget extends StatelessWidget {
               horizontal: 16,
               vertical: 0,
             ),
-            title: Text(context.loc.transactionHistoryLabel,
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w600,
-                  textStyle: Theme.of(context).textTheme.titleLarge,
-                  color: Theme.of(context).colorScheme.onBackground,
-                )),
+            title: Text(
+              context.loc.transactionHistoryLabel,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onBackground,
+                  ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/extensions/build_context_extension.dart';
 
@@ -21,11 +20,10 @@ class PaisaIconTitle extends StatelessWidget {
         ),
         Text(
           context.loc.appTitle,
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            textStyle: Theme.of(context).textTheme.titleLarge,
-            color: Theme.of(context).colorScheme.onBackground,
-          ),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onBackground,
+              ),
         ),
       ],
     );
